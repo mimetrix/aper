@@ -2,10 +2,12 @@ package aper
 
 import (
 	"fmt"
+    //"strings"
 	"path"
 	"reflect"
 	"runtime"
 
+    //"github.com/davecgh/go-spew/spew"
 	"github.com/free5gc/aper/logger"
 )
 
@@ -678,6 +680,11 @@ func (pd *perBitData) parseOpenType(v reflect.Value, params fieldParameters) err
 // in the given Value. TODO : ObjectIdenfier, handle extension Field
 func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 	fieldType := v.Type()
+    /* 
+    for i := 0; i< v.NumField(); i++ {
+
+    }
+    */
 
 	// If we have run out of data return error.
 	if pd.byteOffset == uint64(len(pd.bytes)) {
@@ -735,6 +742,8 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 			return nil
 		}
 	}
+
+
 	switch val := v; val.Kind() {
 	case reflect.Bool:
 		if parsedBool, err := pd.parseBool(); err != nil {
@@ -751,6 +760,8 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 			perTrace(2, fmt.Sprintf("Decoded INTEGER Value: %d", parsedInt))
 			return nil
 		}
+
+
 	case reflect.Struct:
 
 		structType := fieldType
@@ -760,6 +771,7 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 
 		// pass tag for optional
 		for i := 0; i < structType.NumField(); i++ {
+
 			if structType.Field(i).PkgPath != "" {
 				return fmt.Errorf("struct contains unexported fields : " + structType.Field(i).PkgPath)
 			}
@@ -825,7 +837,8 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 		}
 
 		for i := 0; i < structType.NumField(); i++ {
-			if structParams[i].optional && optionalCount > 0 {
+           
+            if structParams[i].optional && optionalCount > 0 {
 				optionalCount--
 				if optionalPresents&(1<<optionalCount) == 0 {
 					perTrace(3, fmt.Sprintf("Field \"%s\" in %s is OPTIONAL and not present", structType.Field(i).Name, structType))
@@ -853,9 +866,16 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 					*structParams[i].referenceFieldValue = referenceFieldValue
 				}
 			}
-			if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
-				return err
-			}
+            
+            
+            if val.Type().Field(i).Name != "ProcedureName" {
+                if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
+                    return err
+                }
+            } else {
+                procname := val.Type().Name()
+                val.Field(i).SetString(procname)
+            }
 		}
 		return nil
 	case reflect.Slice:
@@ -935,5 +955,6 @@ func Unmarshal(b []byte, value interface{}) error {
 func UnmarshalWithParams(b []byte, value interface{}, params string) error {
 	v := reflect.ValueOf(value).Elem()
 	pd := &perBitData{b, 0, 0}
-	return parseField(v, pd, parseFieldParameters(params))
+    ret := parseField(v, pd, parseFieldParameters(params))
+    return(ret)
 }
