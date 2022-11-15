@@ -868,16 +868,24 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 			}
             
             
-            if val.Type().Field(i).Name != "ProcedureName" {
+            fieldName := val.Type().Field(i).Name
+
+            if fieldName == "ProtocolIEName"{
+                protCode := val.Field(i-1).Int()
+                val.Field(i).SetString(ProtocolIEIDMap[protCode])
+            } else if fieldName == "ProcedureName"{
+                procCode := val.Field(i-1).Int()
+                val.Field(i).SetString(ProcedureCodeMap[procCode])
+            } else {
                 if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
                     return err
                 }
-            } else {
-                procname := val.Type().Name()
-                val.Field(i).SetString(procname)
             }
+
 		}
-		return nil
+		
+        return nil
+
 	case reflect.Slice:
 		sliceType := fieldType
 		if newSlice, err := pd.parseSequenceOf(sizeExtensible, params, sliceType); err != nil {
