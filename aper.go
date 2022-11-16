@@ -2,7 +2,7 @@ package aper
 
 import (
 	"fmt"
-    //"strings"
+    "encoding/hex"
 	"path"
 	"reflect"
 	"runtime"
@@ -263,7 +263,8 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 		sizeRange = -1
 	}
 	// initailization
-	bitString := BitString{[]byte{}, 0}
+	bitString := BitString{[]byte{},"", 0}
+	//bitString := BitString{[]byte{}, 0}
 	// lowerbound == upperbound
 	if sizeRange == 1 {
 		sizes := uint64(ub+7) >> 3
@@ -293,6 +294,7 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 			}
 		}
 		perTrace(2, fmt.Sprintf("Decoded BIT STRING (length = %d): %0.8b", ub, bitString.Bytes))
+        bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
 		return bitString, nil
 	}
 	repeat := false
@@ -334,6 +336,8 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 			break
 		}
 	}
+
+    bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
 	return bitString, nil
 }
 
@@ -869,7 +873,7 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
             
             
             fieldName := val.Type().Field(i).Name
-
+            /*
             if fieldName == "ProtocolIEName"{
                 protCode := val.Field(i-1).Int()
                 val.Field(i).SetString(ProtocolIEIDMap[protCode])
@@ -881,7 +885,20 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
                     return err
                 }
             }
+            */
+            if fieldName == "ProtocolIEName" || fieldName == "ProcedureName" || fieldName == "ByteHex" {
+                fieldVal, err := GetCustomFieldValue(val, i, fieldName)
+                if err != nil {
+                    return err
+                }
 
+                val.Field(i).SetString(fieldVal)
+            } else {
+                if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
+                    return err
+                }
+            }
+ 
 		}
 		
         return nil

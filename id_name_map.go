@@ -1,10 +1,11 @@
 package aper
 
 import (
-	//"fmt"
+	"fmt"
+    //"encoding/hex"
     //"strings"
 	//"path"
-	//"reflect"
+	"reflect"
 	//"runtime"
 
     //"github.com/davecgh/go-spew/spew"
@@ -228,4 +229,19 @@ var ProcedureCodeMap = map[int64]string{
     52:"SecondaryRATDataUsageReport",
 }
 
+func GetCustomFieldValue(val reflect.Value, fieldIdx int, fieldName string) (string, error){
+    if fieldName == "ProtocolIEName"{
+        protCode := val.Field(fieldIdx-1).Int()
+        return ProtocolIEIDMap[protCode], nil
+    } else if fieldName == "ProcedureName"{
+        procCode := val.Field(fieldIdx-1).Int()
+        return ProcedureCodeMap[procCode], nil
+    } else if fieldName == "ByteString"{
+        //bytes := val.Field(fieldIdx-1).Bytes()
+        return "BITSTRING", nil 
+        //return hex.EncodeToString(bytes), nil
+    } else {
+        return "",fmt.Errorf("Could not find field name %s", fieldName)
+    }
 
+}
