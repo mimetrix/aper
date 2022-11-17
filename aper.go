@@ -2,7 +2,7 @@ package aper
 
 import (
 	"fmt"
-    "encoding/hex"
+    //"encoding/hex"
 	"path"
 	"reflect"
 	"runtime"
@@ -248,6 +248,17 @@ func (pd *perBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	return value, err
 }
 
+func GetHexString(bytes []byte) string{
+    bitString := ""
+    for idx := range bytes{
+        //bitString += hex.EncodeToString(bytes[idx])
+        bitString += fmt.Sprintf("%.2x",bytes[idx])
+        bitString += ":"
+    }
+    //bitString := hex.EncodeToString(bytes)
+    return bitString
+}
+
 func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (BitString, error) {
 	var lb, ub, sizeRange int64 = 0, -1, -1
 	if !extensed {
@@ -294,7 +305,7 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 			}
 		}
 		perTrace(2, fmt.Sprintf("Decoded BIT STRING (length = %d): %0.8b", ub, bitString.Bytes))
-        bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
+        bitString.HexBytes  = GetHexString(bitString.Bytes)
 		return bitString, nil
 	}
 	repeat := false
@@ -337,7 +348,8 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 		}
 	}
 
-    bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
+    //bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
+    bitString.HexBytes  = GetHexString(bitString.Bytes)
 	return bitString, nil
 }
 
@@ -886,6 +898,8 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
                 }
             }
             */
+            
+            /*
             if fieldName == "ProtocolIEName" || fieldName == "ProcedureName" || fieldName == "ByteHex" {
                 fieldVal, err := GetCustomFieldValue(val, i, fieldName)
                 if err != nil {
@@ -898,7 +912,26 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
                     return err
                 }
             }
+            */
+
  
+            _, isCustom := CustomFieldValues[fieldName]
+            if isCustom {
+                fieldVal, err := CustomFieldValues[fieldName](val, i, fieldName)
+                if err != nil {
+                    return err
+                }
+
+                if val.Field(i).Kind() == reflect.String {
+                    val.Field(i).SetString(fieldVal.String())
+                } else if val.Field(i).Kind() == reflect.Int64{
+                    val.Field(i).SetInt(fieldVal.Int())
+                }
+            } else {
+                if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
+                    return err
+                }
+            }
 		}
 		
         return nil

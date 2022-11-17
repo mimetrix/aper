@@ -1,16 +1,17 @@
 package aper
 
 import (
-	"fmt"
+	//"fmt"
     //"encoding/hex"
     //"strings"
 	//"path"
 	"reflect"
 	//"runtime"
-
     //"github.com/davecgh/go-spew/spew"
 	//"github.com/free5gc/aper/logger"
 )
+
+
 
 var ProtocolIEIDMap = map[int64]string{
     0:"AllowedNSSAI",
@@ -229,19 +230,35 @@ var ProcedureCodeMap = map[int64]string{
     52:"SecondaryRATDataUsageReport",
 }
 
-func GetCustomFieldValue(val reflect.Value, fieldIdx int, fieldName string) (string, error){
-    if fieldName == "ProtocolIEName"{
-        protCode := val.Field(fieldIdx-1).Int()
-        return ProtocolIEIDMap[protCode], nil
-    } else if fieldName == "ProcedureName"{
-        procCode := val.Field(fieldIdx-1).Int()
-        return ProcedureCodeMap[procCode], nil
-    } else if fieldName == "ByteString"{
-        //bytes := val.Field(fieldIdx-1).Bytes()
-        return "BITSTRING", nil 
-        //return hex.EncodeToString(bytes), nil
-    } else {
-        return "",fmt.Errorf("Could not find field name %s", fieldName)
-    }
 
+type mappingFunc func(reflect.Value, int, string) (reflect.Value, error)
+
+var CustomFieldValues = map[string]mappingFunc{
+    "ProtocolIEName":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        protCode := val.Field(fieldIdx-1).Int()
+        return reflect.ValueOf(ProtocolIEIDMap[protCode]), nil
+    },
+    "ProcedureName":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        procCode := val.Field(fieldIdx-1).Int()
+        return reflect.ValueOf(ProcedureCodeMap[procCode]), nil
+    },
+    "PLMNMCC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        b0 := int64(val.Field(fieldIdx - 1).Bytes()[0])
+        b1 := int64(val.Field(fieldIdx - 1).Bytes()[1])
+        //mcc := ((b0 & 0x0F) *100 )// +(b0>>4 *10) + (b1 & 0x0F) 
+        mcc := ((b0 & 0x0F) * 100 ) +(b0>>4 *10) + (b1 & 0x0F) 
+        return reflect.ValueOf(mcc), nil
+    },
+    "PLMNMNC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        b1 := int64(val.Field(fieldIdx - 2).Bytes()[1])
+        b2 := int64(val.Field(fieldIdx - 2).Bytes()[2])
+        var mcc int64 = 0
+        if b1>>4 != 0x0F {
+            mcc += b1>>4 * 100
+        }
+        mcc += (b2 & 0x0F) * 10
+        mcc += b2>>4 
+        return reflect.ValueOf(mcc), nil
+    },
 }
+
