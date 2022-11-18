@@ -258,10 +258,6 @@ func GetHexString(bytes []byte, sep string) string{
             if chr != "" { 
                 hexvals = append(hexvals,chr)
             }
-            //bitString += hex.EncodeToString(bytes[idx])
-            //bitString += fmt.Sprintf("%.2x",bytes[idx])
-            //bitString += sep 
-            
         }
         return strings.Join(hexvals,sep)
     }
