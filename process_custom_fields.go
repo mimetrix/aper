@@ -243,15 +243,22 @@ var CustomFieldValues = map[string]mappingFunc{
         return reflect.ValueOf(ProcedureCodeMap[procCode]), nil
     },
     "PLMNMCC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        b0 := int64(val.Field(fieldIdx - 1).Bytes()[0])
-        b1 := int64(val.Field(fieldIdx - 1).Bytes()[1])
+        var octetstr OctetString = val.FieldByName("Value").Interface().(OctetString)
+        b0 := int64(octetstr.Bytes[0])
+        b1 := int64(octetstr.Bytes[1])
+
+        //b0 := int64( val.Field(fieldIdx - 1).Bytes()[0] )
+        //b1 := int64( val.Field(fieldIdx - 1).Bytes()[1] )
         //mcc := ((b0 & 0x0F) *100 )// +(b0>>4 *10) + (b1 & 0x0F) 
         mcc := ((b0 & 0x0F) * 100 ) +(b0>>4 *10) + (b1 & 0x0F) 
         return reflect.ValueOf(mcc), nil
     },
     "PLMNMNC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        b1 := int64(val.Field(fieldIdx - 2).Bytes()[1])
-        b2 := int64(val.Field(fieldIdx - 2).Bytes()[2])
+        var octetstr OctetString = val.FieldByName("Value").Interface().(OctetString)
+        b1 := int64(octetstr.Bytes[1])
+        b2 := int64(octetstr.Bytes[2])
+        //b1 := int64(val.Field(fieldIdx - 2).Bytes()[1])
+        //b2 := int64(val.Field(fieldIdx - 2).Bytes()[2])
         var mcc int64 = 0
         if b1>>4 != 0x0F {
             mcc += b1>>4 * 100

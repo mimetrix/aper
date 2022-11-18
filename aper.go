@@ -2,6 +2,7 @@ package aper
 
 import (
 	"fmt"
+    "strings"
     //"encoding/hex"
 	"path"
 	"reflect"
@@ -248,16 +249,27 @@ func (pd *perBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	return value, err
 }
 
-func GetHexString(bytes []byte) string{
-    bitString := ""
-    for idx := range bytes{
-        //bitString += hex.EncodeToString(bytes[idx])
-        bitString += fmt.Sprintf("%.2x",bytes[idx])
-        bitString += ":"
+func GetHexString(bytes []byte, sep string) string{
+    if len(bytes) > 0 {
+        
+        hexvals := make([]string,0, len(bytes))
+        for idx := range bytes{
+            chr := fmt.Sprintf("%.2x",bytes[idx])
+            if chr != "" { 
+                hexvals = append(hexvals,chr)
+            }
+            //bitString += hex.EncodeToString(bytes[idx])
+            //bitString += fmt.Sprintf("%.2x",bytes[idx])
+            //bitString += sep 
+            
+        }
+        return strings.Join(hexvals,sep)
     }
-    //bitString := hex.EncodeToString(bytes)
-    return bitString
+
+    return "" 
 }
+
+
 
 func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (BitString, error) {
 	var lb, ub, sizeRange int64 = 0, -1, -1
@@ -305,7 +317,7 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 			}
 		}
 		perTrace(2, fmt.Sprintf("Decoded BIT STRING (length = %d): %0.8b", ub, bitString.Bytes))
-        bitString.HexBytes  = GetHexString(bitString.Bytes)
+        bitString.ByteString  = GetHexString(bitString.Bytes,"")
 		return bitString, nil
 	}
 	repeat := false
@@ -349,7 +361,7 @@ func (pd *perBitData) parseBitString(extensed bool, lowerBoundPtr *int64, upperB
 	}
 
     //bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
-    bitString.HexBytes  = GetHexString(bitString.Bytes)
+    bitString.ByteString  = GetHexString(bitString.Bytes,"")
 	return bitString, nil
 }
 
@@ -370,7 +382,8 @@ func (pd *perBitData) parseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 		sizeRange = -1
 	}
 	// initailization
-	octetString := OctetString("")
+	//octetString := OctetString("")
+	octetString := OctetString{[]byte{},""}
 	// lowerbound == upperbound
 	if sizeRange == 1 {
 		perTrace(2, fmt.Sprintf("Decoding OCTET STRING size %d", ub))
@@ -383,17 +396,19 @@ func (pd *perBitData) parseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 				err := fmt.Errorf("per data out of range")
 				return octetString, err
 			}
-			octetString = pd.bytes[pd.byteOffset : pd.byteOffset+unsignedUB]
+			//octetString = pd.bytes[pd.byteOffset : pd.byteOffset+unsignedUB]
+			octetString.Bytes = pd.bytes[pd.byteOffset : pd.byteOffset+unsignedUB]
 			pd.byteOffset += uint64(ub)
-			perTrace(1, perBitLog(8*unsignedUB, pd.byteOffset, pd.bitsOffset, octetString))
+			perTrace(1, perBitLog(8*unsignedUB, pd.byteOffset, pd.bitsOffset, octetString.Bytes))
 		} else {
 			if octet, err := pd.getBitString(uint(ub * 8)); err != nil {
 				return octetString, err
 			} else {
-				octetString = octet
+				octetString.Bytes = octet
 			}
 		}
-		perTrace(2, fmt.Sprintf("Decoded OCTET STRING (length = %d): 0x%0x", ub, octetString))
+		perTrace(2, fmt.Sprintf("Decoded OCTET STRING (length = %d): 0x%0x", ub, octetString.Bytes))
+        octetString.OctetString  = GetHexString(octetString.Bytes,":")
 		return octetString, nil
 	}
 	repeat := false
@@ -415,10 +430,10 @@ func (pd *perBitData) parseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 			err := fmt.Errorf("per data out of range ")
 			return octetString, err
 		}
-		octetString = append(octetString, pd.bytes[pd.byteOffset:pd.byteOffset+rawLength]...)
+		octetString.Bytes = append(octetString.Bytes, pd.bytes[pd.byteOffset:pd.byteOffset+rawLength]...)
 		pd.byteOffset += rawLength
-		perTrace(1, perBitLog(8*rawLength, pd.byteOffset, pd.bitsOffset, octetString))
-		perTrace(2, fmt.Sprintf("Decoded OCTET STRING (length = %d): 0x%0x", rawLength, octetString))
+		perTrace(1, perBitLog(8*rawLength, pd.byteOffset, pd.bitsOffset, octetString.Bytes))
+		perTrace(2, fmt.Sprintf("Decoded OCTET STRING (length = %d): 0x%0x", rawLength, octetString.Bytes))
 		if !repeat {
 			// if err = pd.parseAlignBits(); err != nil {
 			// 	return
@@ -426,6 +441,7 @@ func (pd *perBitData) parseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 			break
 		}
 	}
+    octetString.OctetString  = GetHexString(octetString.Bytes,":")
 	return octetString, nil
 }
 
@@ -899,21 +915,6 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
             }
             */
             
-            /*
-            if fieldName == "ProtocolIEName" || fieldName == "ProcedureName" || fieldName == "ByteHex" {
-                fieldVal, err := GetCustomFieldValue(val, i, fieldName)
-                if err != nil {
-                    return err
-                }
-
-                val.Field(i).SetString(fieldVal)
-            } else {
-                if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
-                    return err
-                }
-            }
-            */
-
  
             _, isCustom := CustomFieldValues[fieldName]
             if isCustom {
@@ -950,7 +951,7 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
 		if octetString, err := pd.parseOctetString(sizeExtensible, params.sizeLowerBound, params.sizeUpperBound); err != nil {
 			return err
 		} else {
-			printableString := string(octetString)
+			printableString := string(octetString.Bytes)
 			val.SetString(printableString)
 			perTrace(2, fmt.Sprintf("Decoded PrintableString : \"%s\"", printableString))
 			return nil
