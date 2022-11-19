@@ -897,21 +897,7 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
             
             
             fieldName := val.Type().Field(i).Name
-            /*
-            if fieldName == "ProtocolIEName"{
-                protCode := val.Field(i-1).Int()
-                val.Field(i).SetString(ProtocolIEIDMap[protCode])
-            } else if fieldName == "ProcedureName"{
-                procCode := val.Field(i-1).Int()
-                val.Field(i).SetString(ProcedureCodeMap[procCode])
-            } else {
-                if err := parseField(val.Field(i), pd, structParams[i]); err != nil {
-                    return err
-                }
-            }
-            */
-            
- 
+            // process custom fields added in fork 
             _, isCustom := CustomFieldValues[fieldName]
             if isCustom {
                 fieldVal, err := CustomFieldValues[fieldName](val, i, fieldName)
@@ -919,10 +905,15 @@ func parseField(v reflect.Value, pd *perBitData, params fieldParameters) error {
                     return err
                 }
 
-                if val.Field(i).Kind() == reflect.String {
-                    val.Field(i).SetString(fieldVal.String())
-                } else if val.Field(i).Kind() == reflect.Int64{
-                    val.Field(i).SetInt(fieldVal.Int())
+                field := val.Field(i)
+                if field.Kind() == reflect.String {
+                    field.SetString(fieldVal.String())
+                } else if field.Kind() == reflect.Int64{
+                    field.SetInt(fieldVal.Int())
+                } else if field.Kind() == reflect.Bool {
+                    field.SetBool(fieldVal.Bool())
+                } else {
+				    err = fmt.Errorf("Csutom type returned is neither string nor int64")
                 }
             } else {
                 if err := parseField(val.Field(i), pd, structParams[i]); err != nil {

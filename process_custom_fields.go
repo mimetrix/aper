@@ -233,6 +233,7 @@ var ProcedureCodeMap = map[int64]string{
 
 type mappingFunc func(reflect.Value, int, string) (reflect.Value, error)
 
+
 var CustomFieldValues = map[string]mappingFunc{
     "ProtocolIEName":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         protCode := val.Field(fieldIdx-1).Int()
@@ -243,29 +244,42 @@ var CustomFieldValues = map[string]mappingFunc{
         return reflect.ValueOf(ProcedureCodeMap[procCode]), nil
     },
     "PLMNMCC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        var octetstr OctetString = val.FieldByName("Value").Interface().(OctetString)
-        b0 := int64(octetstr.Bytes[0])
-        b1 := int64(octetstr.Bytes[1])
-
-        //b0 := int64( val.Field(fieldIdx - 1).Bytes()[0] )
-        //b1 := int64( val.Field(fieldIdx - 1).Bytes()[1] )
-        //mcc := ((b0 & 0x0F) *100 )// +(b0>>4 *10) + (b1 & 0x0F) 
+        var octetStr OctetString = val.FieldByName("Value").Interface().(OctetString)
+        b0 := int64(octetStr.Bytes[0])
+        b1 := int64(octetStr.Bytes[1])
         mcc := ((b0 & 0x0F) * 100 ) +(b0>>4 *10) + (b1 & 0x0F) 
         return reflect.ValueOf(mcc), nil
     },
     "PLMNMNC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        var octetstr OctetString = val.FieldByName("Value").Interface().(OctetString)
-        b1 := int64(octetstr.Bytes[1])
-        b2 := int64(octetstr.Bytes[2])
-        //b1 := int64(val.Field(fieldIdx - 2).Bytes()[1])
-        //b2 := int64(val.Field(fieldIdx - 2).Bytes()[2])
-        var mcc int64 = 0
+        var octetStr OctetString = val.FieldByName("Value").Interface().(OctetString)
+        b1 := int64(octetStr.Bytes[1])
+        b2 := int64(octetStr.Bytes[2])
+        var mnc int64 = 0
         if b1>>4 != 0x0F {
-            mcc += b1>>4 * 100
+            mnc += b1>>4 * 100
         }
-        mcc += (b2 & 0x0F) * 10
-        mcc += b2>>4 
-        return reflect.ValueOf(mcc), nil
+        mnc += (b2 & 0x0F) * 10
+        mnc += b2>>4 
+        return reflect.ValueOf(mnc), nil
     },
+    "EUTRAEIA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
+    "EUTRAEIA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
+    "EUTRAEIA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
+
 }
 
