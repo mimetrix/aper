@@ -1,7 +1,7 @@
 package aper
 
 import (
-	//"fmt"
+	"fmt"
     //"encoding/hex"
     //"strings"
 	//"path"
@@ -262,6 +262,24 @@ var CustomFieldValues = map[string]mappingFunc{
         mnc += b2>>4 
         return reflect.ValueOf(mnc), nil
     },
+    "EUTRAEEA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
+    "EUTRAEEA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
+    "EUTRAEEA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
     "EUTRAEIA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
@@ -279,6 +297,16 @@ var CustomFieldValues = map[string]mappingFunc{
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf((b0 >> 7) == 1)
         return ret, nil
+    },
+ 
+    "IPv4":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        bytes := bitStr.Bytes
+        if len(bytes) != 4{
+            return reflect.ValueOf(""), fmt.Errorf("Invalid IP Address: %v", bytes)  
+        }
+        ipv4 := fmt.Sprintf("%d.%d.%d.%d",bytes[0],bytes[1],bytes[2],bytes[3])
+        return reflect.ValueOf(ipv4), nil
     },
 
 }
