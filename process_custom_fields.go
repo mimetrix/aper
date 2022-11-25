@@ -271,13 +271,13 @@ var CustomFieldValues = map[string]mappingFunc{
     "EUTRAEEA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
-        ret := reflect.ValueOf((b0 >> 7) == 1)
+        ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
         return ret, nil
     },
     "EUTRAEEA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
-        ret := reflect.ValueOf((b0 >> 7) == 1)
+        ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
         return ret, nil
     },
     "EUTRAEIA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
@@ -289,16 +289,51 @@ var CustomFieldValues = map[string]mappingFunc{
     "EUTRAEIA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
-        ret := reflect.ValueOf((b0 >> 7) == 1)
+        ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
         return ret, nil
     },
     "EUTRAEIA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
+        return ret, nil
+    },
+    "NRNEA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf((b0 >> 7) == 1)
         return ret, nil
     },
- 
+    "NRNEA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
+        return ret, nil
+    },
+    "NRNEA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
+        return ret, nil
+    },
+    "NRNIA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+    },
+    "NRNIA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
+        return ret, nil
+    },
+    "NRNIA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
+        return ret, nil
+    },
     "IPv4":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         bytes := bitStr.Bytes
@@ -309,5 +344,6 @@ var CustomFieldValues = map[string]mappingFunc{
         return reflect.ValueOf(ipv4), nil
     },
 
+    
 }
 
