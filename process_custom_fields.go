@@ -1,6 +1,7 @@
 package aper
 
 import (
+    "time"
 	"fmt"
     //"encoding/hex"
     //"strings"
@@ -342,6 +343,21 @@ var CustomFieldValues = map[string]mappingFunc{
         }
         ipv4 := fmt.Sprintf("%d.%d.%d.%d",bytes[0],bytes[1],bytes[2],bytes[3])
         return reflect.ValueOf(ipv4), nil
+    },
+    "DateTime":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var octStr OctetString = val.FieldByName("Value").Interface().(OctetString)
+        bytes := octStr.Bytes
+        var seconds int64 = 0
+        seconds += int64(bytes[0]) << 24
+        seconds += int64(bytes[1]) << 16
+        seconds += int64(bytes[2]) << 8 
+        seconds += int64(bytes[3])
+        unixTime := time.Unix(seconds,0)
+        
+        //NTP uses seconds since Jan 1 1900, but Unix uses Jan 1 1970, so we have to subtract 70
+        unixTime = unixTime.AddDate(-70,0,0) 
+        return reflect.ValueOf(unixTime.String()), nil
+
     },
 
     
