@@ -514,7 +514,7 @@ func (pd *perRawBitData) appendEnumerated(value uint64, extensive bool, lowerBou
 	return nil
 }
 
-func (pd *perRawBitData) parseSequenceOf(v reflect.Value, params fieldParameters) error {
+func (pd *perRawBitData) parseSequenceOf(v reflect.Value, params FieldParameters) error {
 	var lb, ub, sizeRange int64 = 0, -1, -1
 	numElements := int64(v.Len())
 	if params.sizeLowerBound != nil && *params.sizeLowerBound < 65536 {
@@ -589,7 +589,7 @@ func (pd *perRawBitData) appendChoiceIndex(present int, extensive bool, upperBou
 	return nil
 }
 
-func (pd *perRawBitData) appendOpenType(v reflect.Value, params fieldParameters) error {
+func (pd *perRawBitData) appendOpenType(v reflect.Value, params FieldParameters) error {
 	pdOpenType := &perRawBitData{[]byte(""), 0}
 	perTrace(2, fmt.Sprintf("Encoding OpenType %s to temp RawData", v.Type().String()))
 	if err := pdOpenType.makeField(v, params); err != nil {
@@ -634,7 +634,7 @@ func (pd *perRawBitData) appendOpenType(v reflect.Value, params fieldParameters)
 	return nil
 }
 
-func (pd *perRawBitData) makeField(v reflect.Value, params fieldParameters) error {
+func (pd *perRawBitData) makeField(v reflect.Value, params FieldParameters) error {
 	if !v.IsValid() {
 		return fmt.Errorf("aper: cannot marshal nil value")
 	}
@@ -674,7 +674,7 @@ func (pd *perRawBitData) makeField(v reflect.Value, params fieldParameters) erro
 	case reflect.Struct:
 
 		structType := fieldType
-		var structParams []fieldParameters
+		var structParams []FieldParameters
 		var optionalCount uint
 		var optionalPresents uint64
 		var sequenceType bool

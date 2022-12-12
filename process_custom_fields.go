@@ -1,8 +1,10 @@
 package aper
 
+
+
 import (
-    "time"
-	"fmt"
+    //"time"
+    //"fmt"
     //"encoding/hex"
     //"strings"
 	//"path"
@@ -244,6 +246,7 @@ var CustomFieldValues = map[string]mappingFunc{
         procCode := val.Field(fieldIdx-1).Int()
         return reflect.ValueOf(ProcedureCodeMap[procCode]), nil
     },
+    /*
     "PLMNMCC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var octetStr OctetString = val.FieldByName("Value").Interface().(OctetString)
         b0 := int64(octetStr.Bytes[0])
@@ -263,73 +266,78 @@ var CustomFieldValues = map[string]mappingFunc{
         mnc += b2>>4 
         return reflect.ValueOf(mnc), nil
     },
-    "EUTRAEEA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    */
+   /* 
+    "EUTRAEA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf((b0 >> 7) == 1)
+        return ret, nil
+        return reflect.ValueOf(false), nil
+    },
+    "EUTRAEA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
+        return ret, nil
+        return reflect.ValueOf(false), nil
+    },
+    "EUTRAEA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
+        b0 := int64(bitStr.Bytes[0])
+        ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
+        return ret, nil
+        return reflect.ValueOf(false), nil
+    },
+    "EUTRAIPA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf((b0 >> 7) == 1)
         return ret, nil
     },
-    "EUTRAEEA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "EUTRAIPA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
         return ret, nil
     },
-    "EUTRAEEA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "EUTRAIPA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
         return ret, nil
     },
-    "EUTRAEIA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "NREA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf((b0 >> 7) == 1)
         return ret, nil
     },
-    "EUTRAEIA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "NREA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
         return ret, nil
     },
-    "EUTRAEIA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "NREA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
         return ret, nil
     },
-    "NRNEA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "NRIPA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf((b0 >> 7) == 1)
         return ret, nil
     },
-    "NRNEA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "NRIPA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
         return ret, nil
     },
-    "NRNEA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
-        b0 := int64(bitStr.Bytes[0])
-        ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
-        return ret, nil
-    },
-    "NRNIA1":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
-        b0 := int64(bitStr.Bytes[0])
-        ret := reflect.ValueOf((b0 >> 7) == 1)
-        return ret, nil
-    },
-    "NRNIA2":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
-        var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
-        b0 := int64(bitStr.Bytes[0])
-        ret := reflect.ValueOf(((b0 & 0x40) >> 6) == 1)
-        return ret, nil
-    },
-    "NRNIA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
+    "NRIPA3":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var bitStr BitString = val.FieldByName("Value").Interface().(BitString)
         b0 := int64(bitStr.Bytes[0])
         ret := reflect.ValueOf(((b0 & 0x20) >> 5) == 1)
@@ -342,6 +350,7 @@ var CustomFieldValues = map[string]mappingFunc{
             return reflect.ValueOf(""), fmt.Errorf("Invalid IP Address: %v", bytes)  
         }
         ipv4 := fmt.Sprintf("%d.%d.%d.%d",bytes[0],bytes[1],bytes[2],bytes[3])
+        fmt.Println("qwertyabc")
         return reflect.ValueOf(ipv4), nil
     },
     "DateTime":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
@@ -353,13 +362,10 @@ var CustomFieldValues = map[string]mappingFunc{
         seconds += int64(bytes[2]) << 8 
         seconds += int64(bytes[3])
         unixTime := time.Unix(seconds,0)
-        
-        //NTP uses seconds since Jan 1 1900, but Unix uses Jan 1 1970, so we have to subtract 70
         unixTime = unixTime.AddDate(-70,0,0) 
         return reflect.ValueOf(unixTime.String()), nil
 
     },
-
-    
+    */    
 }
 

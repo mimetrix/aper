@@ -6,7 +6,7 @@ import (
 )
 
 // fieldParameters is the parsed representation of tag string from a structure field.
-type fieldParameters struct {
+type FieldParameters struct {
 	optional            bool   // true iff the type has OPTIONAL tag.
 	sizeExtensible      bool   // true iff the size can be extensed.
 	valueExtensible     bool   // true iff the value can be extensed.
@@ -23,7 +23,7 @@ type fieldParameters struct {
 // Given a tag string with the format specified in the package comment,
 // parseFieldParameters will parse it into a fieldParameters structure,
 // ignoring unknown parts of the string. TODO:PrintableString
-func parseFieldParameters(str string) (params fieldParameters) {
+func parseFieldParameters(str string) (params FieldParameters) {
 	for _, part := range strings.Split(str, ",") {
 		switch {
 		case part == "optional":
