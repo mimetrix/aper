@@ -122,6 +122,17 @@ func (pd *PerBitData) getBitString(numBits uint) (dstBytes []byte, err error) {
 	return
 }
 
+func (pd *PerBitData) IsExtended() (bool, error) {
+    sizeExtended := false 
+    if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
+        return sizeExtended, err1
+    } else if bitsValue != 0 {
+        sizeExtended = true
+    }
+    return sizeExtended, nil
+
+}
+
 func (pd *PerBitData) GetBitsValue(numBits uint) (value uint64, err error) {
 	value, err = GetBitsValue(pd.bytes[pd.byteOffset:], pd.bitsOffset, numBits)
 	if err != nil {
@@ -748,7 +759,6 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 		}
 		perTrace(2, fmt.Sprintf("Decoded Size Extensive Bit : %t", sizeExtensible))
 	}
-    //spew.Dump(params)
 	if params.valueExtensible && v.Kind() != reflect.Slice {
 		if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
 			return err1
