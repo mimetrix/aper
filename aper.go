@@ -489,7 +489,7 @@ func (pd *PerBitData) parseBool() (value bool, err error) {
 	return
 }
 
-func (pd *PerBitData) parseInteger(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (int64, error) {
+func (pd *PerBitData) ParseInteger(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (int64, error) {
 	var lb, ub, valueRange int64 = 0, -1, 0
 	if !extensed {
 		if lowerBoundPtr == nil {
@@ -677,6 +677,11 @@ func (pd *PerBitData) getChoiceIndex(extensed bool, upperBoundPtr *int64) (prese
 }
 
 func getReferenceFieldValue(v reflect.Value) (value int64, err error) {
+    //dereference if v is a pointer
+    if v.Kind() == reflect.Pointer{
+        v = v.Elem()
+    }
+
 	fieldType := v.Type()
 	switch v.Kind() {
 	case reflect.Int, reflect.Int32, reflect.Int64:
@@ -815,7 +820,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 			return nil
 		}
 	case reflect.Int, reflect.Int32, reflect.Int64:
-		if parsedInt, err := pd.parseInteger(valueExtensible, params.valueLowerBound, params.valueUpperBound); err != nil {
+		if parsedInt, err := pd.ParseInteger(valueExtensible, params.valueLowerBound, params.valueUpperBound); err != nil {
 			return err
 		} else {
 			val.SetInt(parsedInt)
@@ -900,6 +905,18 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
                         err := adInterface.AperDecode(pd, structParams[present] )
                         return err
                     } else{ 
+                                       /* 
+                        fmt.Println("\n\t+++++struct+++++\n")
+                        spew.Dump(val.Interface())
+                        fmt.Println("\t++field++")
+                        spew.Dump(val.Field(present).Interface())
+                        fmt.Println("\t++sp++")
+                        spew.Dump(structParams[present])
+                        fmt.Println("\n\t++++pd+++\n")
+                        spew.Dump(pd)
+                        fmt.Println("\n\t++++++++++\n")
+                        */
+
 					    return ParseField(val.Field(present), pd, structParams[present])
 				    }
 					//return ParseField(val.Field(present), pd, structParams[present])
@@ -934,6 +951,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 					return fmt.Errorf("Open type is not reference to the other field in the struct")
 				}
 				structParams[i].referenceFieldValue = new(int64)
+                
 				if referenceFieldValue, err := getReferenceFieldValue(val.Field(index)); err != nil {
 					return err
 				} else {
@@ -973,7 +991,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
                 }
 
             } else {
-                /*
+               /* 
                 fmt.Println("\n\t-----struct-----\n")
                 spew.Dump(val.Interface())
                 fmt.Println("\t--field--")
@@ -984,7 +1002,6 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
                 spew.Dump(pd)
                 fmt.Println("\n\t----------\n")
                 */
-
                 if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
                     return err
                 }

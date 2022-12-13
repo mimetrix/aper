@@ -242,11 +242,11 @@ var CustomFieldValues = map[string]mappingFunc{
         protCode := val.Field(fieldIdx-1).Int()
         return reflect.ValueOf(ProtocolIEIDMap[protCode]), nil
     },
+    /*
     "ProcedureName":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         procCode := val.Field(fieldIdx-1).Int()
         return reflect.ValueOf(ProcedureCodeMap[procCode]), nil
     },
-    /*
     "PLMNMCC":func(val reflect.Value, fieldIdx int, fieldName string) (reflect.Value, error){
         var octetStr OctetString = val.FieldByName("Value").Interface().(OctetString)
         b0 := int64(octetStr.Bytes[0])
