@@ -8,19 +8,20 @@ import (
 
 // BitString is for an ASN.1 BIT STRING type, BitLength means the effective bits.
 type BitString struct {
-	Bytes     []byte // bits packed into bytes.
-    ByteString string
-	BitLength uint64 // length in bits.
+	Bytes      []byte // bits packed into bytes.
+	ByteString string
+	BitLength  uint64 // length in bits.
 }
 
 // OCTET STRING
 
 // OctetString is for an ASN.1 OCTET STRING type
-//type OctetString []byte
+// type OctetString []byte
 type OctetString struct {
-    Bytes []byte
-    OctetString string
+	Bytes       []byte
+	OctetString string
 }
+
 // OBJECT IDENTIFIER
 
 // ObjectIdentifier is for an ASN.1 OBJECT IDENTIFIER type

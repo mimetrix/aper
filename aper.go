@@ -1,15 +1,15 @@
 package aper
 
 import (
-    //"github.com/davecgh/go-spew/spew"
-    "encoding/json"
+	//"github.com/davecgh/go-spew/spew"
+	"encoding/json"
 	"fmt"
-    "strings"
-    //"encoding/hex"
+	"strings"
+	//"encoding/hex"
+	"github.com/free5gc/aper/logger"
 	"path"
 	"reflect"
 	"runtime"
-	"github.com/free5gc/aper/logger"
 )
 
 type PerBitData struct {
@@ -19,7 +19,7 @@ type PerBitData struct {
 }
 
 type AperDecoder interface {
-    AperDecode(pd *PerBitData, params FieldParameters ) error
+	AperDecode(pd *PerBitData, params FieldParameters) error
 }
 
 func perTrace(level int, s string) {
@@ -123,13 +123,13 @@ func (pd *PerBitData) getBitString(numBits uint) (dstBytes []byte, err error) {
 }
 
 func (pd *PerBitData) IsExtended() (bool, error) {
-    sizeExtended := false 
-    if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
-        return sizeExtended, err1
-    } else if bitsValue != 0 {
-        sizeExtended = true
-    }
-    return sizeExtended, nil
+	sizeExtended := false
+	if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
+		return sizeExtended, err1
+	} else if bitsValue != 0 {
+		sizeExtended = true
+	}
+	return sizeExtended, nil
 
 }
 
@@ -266,38 +266,37 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	return value, err
 }
 
-func GetHexString(bytes []byte, sep string) string{
-    if len(bytes) > 0 {
-        
-        hexvals := make([]string,0, len(bytes))
-        for idx := range bytes{
-            chr := fmt.Sprintf("%.2x",bytes[idx])
-            if chr != "" { 
-                hexvals = append(hexvals,chr)
-            }
-        }
-        return strings.Join(hexvals,sep)
-    }
+func GetHexString(bytes []byte, sep string) string {
+	if len(bytes) > 0 {
 
-    return "" 
+		hexvals := make([]string, 0, len(bytes))
+		for idx := range bytes {
+			chr := fmt.Sprintf("%.2x", bytes[idx])
+			if chr != "" {
+				hexvals = append(hexvals, chr)
+			}
+		}
+		return strings.Join(hexvals, sep)
+	}
+
+	return ""
 }
 
-
-func (pd *PerBitData) Exported() int{
-    return 999
+func (pd *PerBitData) Exported() int {
+	return 999
 }
 
-func (pd *PerBitData) notExported() int{
-    return 999
+func (pd *PerBitData) notExported() int {
+	return 999
 }
 
 func (pd *PerBitData) ParseBitString(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (BitString, error) {
 
-    /*
-    fmt.Printf("\n\tcalled parseBitString %v - %v - %v",extensed, *lowerBoundPtr, *upperBoundPtr)
-    spew.Dump(pd)
-    fmt.Println()
-*/
+	/*
+	   fmt.Printf("\n\tcalled parseBitString %v - %v - %v",extensed, *lowerBoundPtr, *upperBoundPtr)
+	   spew.Dump(pd)
+	   fmt.Println()
+	*/
 	var lb, ub, sizeRange int64 = 0, -1, -1
 	if !extensed {
 		if lowerBoundPtr != nil {
@@ -312,7 +311,7 @@ func (pd *PerBitData) ParseBitString(extensed bool, lowerBoundPtr *int64, upperB
 		sizeRange = -1
 	}
 	// initailization
-	bitString := BitString{[]byte{},"", 0}
+	bitString := BitString{[]byte{}, "", 0}
 	//bitString := BitString{[]byte{}, 0}
 	// lowerbound == upperbound
 	if sizeRange == 1 {
@@ -343,7 +342,7 @@ func (pd *PerBitData) ParseBitString(extensed bool, lowerBoundPtr *int64, upperB
 			}
 		}
 		perTrace(2, fmt.Sprintf("Decoded BIT STRING (length = %d): %0.8b", ub, bitString.Bytes))
-        bitString.ByteString  = GetHexString(bitString.Bytes,"")
+		bitString.ByteString = GetHexString(bitString.Bytes, "")
 		return bitString, nil
 	}
 	repeat := false
@@ -386,8 +385,8 @@ func (pd *PerBitData) ParseBitString(extensed bool, lowerBoundPtr *int64, upperB
 		}
 	}
 
-    //bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
-    bitString.ByteString  = GetHexString(bitString.Bytes,"")
+	//bitString.HexBytes = hex.EncodeToString(bitString.Bytes)
+	bitString.ByteString = GetHexString(bitString.Bytes, "")
 	return bitString, nil
 }
 
@@ -410,7 +409,7 @@ func (pd *PerBitData) ParseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 	}
 	// initailization
 	//octetString := OctetString("")
-	octetString := OctetString{[]byte{},""}
+	octetString := OctetString{[]byte{}, ""}
 	// lowerbound == upperbound
 	if sizeRange == 1 {
 		perTrace(2, fmt.Sprintf("Decoding OCTET STRING size %d", ub))
@@ -435,7 +434,7 @@ func (pd *PerBitData) ParseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 			}
 		}
 		perTrace(2, fmt.Sprintf("Decoded OCTET STRING (length = %d): 0x%0x", ub, octetString.Bytes))
-        octetString.OctetString  = GetHexString(octetString.Bytes,":")
+		octetString.OctetString = GetHexString(octetString.Bytes, ":")
 		return octetString, nil
 	}
 	repeat := false
@@ -468,7 +467,7 @@ func (pd *PerBitData) ParseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 			break
 		}
 	}
-    octetString.OctetString  = GetHexString(octetString.Bytes,":")
+	octetString.OctetString = GetHexString(octetString.Bytes, ":")
 	return octetString, nil
 }
 
@@ -677,10 +676,10 @@ func (pd *PerBitData) getChoiceIndex(extensed bool, upperBoundPtr *int64) (prese
 }
 
 func getReferenceFieldValue(v reflect.Value) (value int64, err error) {
-    //dereference if v is a pointer
-    if v.Kind() == reflect.Pointer{
-        v = v.Elem()
-    }
+	//dereference if v is a pointer
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
 
 	fieldType := v.Type()
 	switch v.Kind() {
@@ -744,7 +743,7 @@ func (pd *PerBitData) parseOpenType(v reflect.Value, params FieldParameters) err
 // in the given Value. TODO : ObjectIdenfier, handle extension Field
 func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	fieldType := v.Type()
-    //spew.Dump(v.Type().Name())
+	//spew.Dump(v.Type().Name())
 	// If we have run out of data return error.
 	if pd.byteOffset == uint64(len(pd.bytes)) {
 		return fmt.Errorf("sequence truncated")
@@ -776,9 +775,9 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	// We deal with the structures defined in this package first.
 	switch fieldType {
 	case BitStringType:
-        //fmt.Printf("--pbs--%v\n",sizeExtensible)
-        //spew.Dump(pd)
-        //fmt.Println("----")
+		//fmt.Printf("--pbs--%v\n",sizeExtensible)
+		//spew.Dump(pd)
+		//fmt.Println("----")
 		bitString, err1 := pd.ParseBitString(sizeExtensible, params.sizeLowerBound, params.sizeUpperBound)
 
 		if err1 != nil {
@@ -789,12 +788,12 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	case ObjectIdentifierType:
 		return fmt.Errorf("Unsupport ObjectIdenfier type")
 	case OctetStringType:
-        /*
-        if params.sizeLowerBound != nil && params.sizeUpperBound != nil {
-            fmt.Printf("\nparseoctet:%v - %v - %v",sizeExtensible, *params.sizeLowerBound, *params.sizeUpperBound)
-		}
-        */
-        if octetString, err := pd.ParseOctetString(sizeExtensible, params.sizeLowerBound, params.sizeUpperBound); err != nil {
+		/*
+		        if params.sizeLowerBound != nil && params.sizeUpperBound != nil {
+		            fmt.Printf("\nparseoctet:%v - %v - %v",sizeExtensible, *params.sizeLowerBound, *params.sizeUpperBound)
+				}
+		*/
+		if octetString, err := pd.ParseOctetString(sizeExtensible, params.sizeLowerBound, params.sizeUpperBound); err != nil {
 			return err
 		} else {
 			v.Set(reflect.ValueOf(octetString))
@@ -809,7 +808,6 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 			return nil
 		}
 	}
-
 
 	switch val := v; val.Kind() {
 	case reflect.Bool:
@@ -827,7 +825,6 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 			perTrace(2, fmt.Sprintf("Decoded INTEGER Value: %d", parsedInt))
 			return nil
 		}
-
 
 	case reflect.Struct:
 
@@ -898,38 +895,36 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 				} else if present >= structType.NumField() {
 					return fmt.Errorf("CHOICE Present is bigger than number of struct field")
 				} else {
-                    if _, ok := val.Field(present).Interface().(AperDecoder); ok {
-                        decoderType := reflect.New(val.Field(present).Type().Elem())
-                        val.Field(present).Set(decoderType)
-                        adInterface := val.Field(present).Interface().(AperDecoder)
-                        err := adInterface.AperDecode(pd, structParams[present] )
-                        return err
-                    } else{ 
-                                       /* 
-                        fmt.Println("\n\t+++++struct+++++\n")
-                        spew.Dump(val.Interface())
-                        fmt.Println("\t++field++")
-                        spew.Dump(val.Field(present).Interface())
-                        fmt.Println("\t++sp++")
-                        spew.Dump(structParams[present])
-                        fmt.Println("\n\t++++pd+++\n")
-                        spew.Dump(pd)
-                        fmt.Println("\n\t++++++++++\n")
-                        */
+					if _, ok := val.Field(present).Interface().(AperDecoder); ok {
+						decoderType := reflect.New(val.Field(present).Type().Elem())
+						val.Field(present).Set(decoderType)
+						adInterface := val.Field(present).Interface().(AperDecoder)
+						err := adInterface.AperDecode(pd, structParams[present])
+						return err
+					} else {
+						/*
+						   fmt.Println("\n\t+++++struct+++++\n")
+						   spew.Dump(val.Interface())
+						   fmt.Println("\t++field++")
+						   spew.Dump(val.Field(present).Interface())
+						   fmt.Println("\t++sp++")
+						   spew.Dump(structParams[present])
+						   fmt.Println("\n\t++++pd+++\n")
+						   spew.Dump(pd)
+						   fmt.Println("\n\t++++++++++\n")
+						*/
 
-					    return ParseField(val.Field(present), pd, structParams[present])
-				    }
-					//return ParseField(val.Field(present), pd, structParams[present])
-                    
-                }
+						return ParseField(val.Field(present), pd, structParams[present])
+					}
+
+				}
 			}
 		}
-        
-          
-        //spew.Dump(val.Interface())
+
+		//spew.Dump(val.Interface())
 		for i := 0; i < structType.NumField(); i++ {
-            //fmt.Printf("\tField:%d/%d",i,structType.NumField()) 
-            if structParams[i].optional && optionalCount > 0 {
+			//fmt.Printf("\tField:%d/%d",i,structType.NumField())
+			if structParams[i].optional && optionalCount > 0 {
 				optionalCount--
 				if optionalPresents&(1<<optionalCount) == 0 {
 					perTrace(3, fmt.Sprintf("Field \"%s\" in %s is OPTIONAL and not present", structType.Field(i).Name, structType))
@@ -951,65 +946,43 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 					return fmt.Errorf("Open type is not reference to the other field in the struct")
 				}
 				structParams[i].referenceFieldValue = new(int64)
-                
+
 				if referenceFieldValue, err := getReferenceFieldValue(val.Field(index)); err != nil {
 					return err
 				} else {
 					*structParams[i].referenceFieldValue = referenceFieldValue
 				}
 			}
-            
-            if _, ok := val.Field(i).Interface().(AperDecoder); ok {
-                
-                decoderType := reflect.New(val.Field(i).Type().Elem())
-                val.Field(i).Set(decoderType)
-                adInterface := val.Field(i).Interface().(AperDecoder)
-                err := adInterface.AperDecode(pd, structParams[i] )
-                if err!=nil{
-                    return err
-                }
-                continue
-            } 
 
+			if _, ok := val.Field(i).Interface().(AperDecoder); ok {
 
-            fieldName := val.Type().Field(i).Name
-            _, isCustom := CustomFieldValues[fieldName]
-            if isCustom {
-                fieldVal, err := CustomFieldValues[fieldName](val, i, fieldName)
-                if err != nil {
-                    return err
-                }
-                field := val.Field(i)
-                if field.Kind() == reflect.String {
-                    field.SetString(fieldVal.String())
-                } else if field.Kind() == reflect.Int64{
-                    field.SetInt(fieldVal.Int())
-                } else if field.Kind() == reflect.Bool {
-                    field.SetBool(fieldVal.Bool())
-                } else {
-				    err = fmt.Errorf("Custom type returned is neither string nor int64")
-                }
-
-            } else {
-               /* 
-                fmt.Println("\n\t-----struct-----\n")
-                spew.Dump(val.Interface())
-                fmt.Println("\t--field--")
-                spew.Dump(val.Field(i).Interface())
-                fmt.Println("\t--sp--")
-                spew.Dump(structParams[i])
-                fmt.Println("\n\t----pd---\n")
-                spew.Dump(pd)
-                fmt.Println("\n\t----------\n")
-                */
-                if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
-                    return err
-                }
-                
-            }
+				decoderType := reflect.New(val.Field(i).Type().Elem())
+				val.Field(i).Set(decoderType)
+				adInterface := val.Field(i).Interface().(AperDecoder)
+				err := adInterface.AperDecode(pd, structParams[i])
+				if err != nil {
+					return err
+				}
+				continue
+			} else {
+				/*
+				   fmt.Println("\n\t-----struct-----\n")
+				   spew.Dump(val.Interface())
+				   fmt.Println("\t--field--")
+				   spew.Dump(val.Field(i).Interface())
+				   fmt.Println("\t--sp--")
+				   spew.Dump(structParams[i])
+				   fmt.Println("\n\t----pd---\n")
+				   spew.Dump(pd)
+				   fmt.Println("\n\t----------\n")
+				*/
+				if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
+					return err
+				}
+			}
 		}
-		
-        return nil
+
+		return nil
 
 	case reflect.Slice:
 		sliceType := fieldType
@@ -1065,17 +1038,17 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 //
 // The following tags on struct fields have special meaning to Unmarshal:
 //
-//	optional        	OPTIONAL tag in SEQUENCE
-//	sizeExt             specifies that size  is extensible
-//	valueExt            specifies that value is extensible
-//	sizeLB		        set the minimum value of size constraint
-//	sizeUB              set the maximum value of value constraint
-//	valueLB		        set the minimum value of size constraint
-//	valueUB             set the maximum value of value constraint
-//	default             sets the default value
-//	openType            specifies the open Type
-//  referenceFieldName	the string of the reference field for this type (only if openType used)
-//  referenceFieldValue	the corresponding value of the reference field for this type (only if openType used)
+//		optional        	OPTIONAL tag in SEQUENCE
+//		sizeExt             specifies that size  is extensible
+//		valueExt            specifies that value is extensible
+//		sizeLB		        set the minimum value of size constraint
+//		sizeUB              set the maximum value of value constraint
+//		valueLB		        set the minimum value of size constraint
+//		valueUB             set the maximum value of value constraint
+//		default             sets the default value
+//		openType            specifies the open Type
+//	 referenceFieldName	the string of the reference field for this type (only if openType used)
+//	 referenceFieldValue	the corresponding value of the reference field for this type (only if openType used)
 //
 // Other ASN.1 types are not supported; if it encounters them,
 // Unmarshal returns a parse error.
@@ -1083,15 +1056,15 @@ func Unmarshal(b []byte, value interface{}) error {
 	return UnmarshalWithParams(b, value, "")
 }
 
-func make_human_readable(value interface{}) error{
-     
-    imJSON, err := json.MarshalIndent(value,"","    ")
-    if err!=nil {
-        return fmt.Errorf("Failed to Marshal JSON")
-    }
-    fmt.Println(string(len(imJSON)))
-    //spew.Dump(imJSON)
-    return nil
+func make_human_readable(value interface{}) error {
+
+	imJSON, err := json.MarshalIndent(value, "", "    ")
+	if err != nil {
+		return fmt.Errorf("Failed to Marshal JSON")
+	}
+	fmt.Println(string(len(imJSON)))
+	//spew.Dump(imJSON)
+	return nil
 
 }
 
@@ -1100,7 +1073,7 @@ func make_human_readable(value interface{}) error{
 func UnmarshalWithParams(b []byte, value interface{}, params string) error {
 	v := reflect.ValueOf(value).Elem()
 	pd := &PerBitData{b, 0, 0}
-    ret := ParseField(v, pd, parseFieldParameters(params))
-   
-    return(ret)
+	ret := ParseField(v, pd, parseFieldParameters(params))
+
+	return (ret)
 }
