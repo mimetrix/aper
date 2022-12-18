@@ -1,4 +1,4 @@
-module github.com/free5gc/aper
+module github.com/mimetrix/aper
 
 go 1.14
 
