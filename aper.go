@@ -393,7 +393,6 @@ func (pd *PerBitData) ParseBitString(extensed bool, lowerBoundPtr *int64, upperB
 func (pd *PerBitData) ParseOctetString(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (
 	OctetString, error,
 ) {
-
 	var lb, ub, sizeRange int64 = 0, -1, -1
 	if !extensed {
 		if lowerBoundPtr != nil {
@@ -407,6 +406,8 @@ func (pd *PerBitData) ParseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 	if ub > 65535 {
 		sizeRange = -1
 	}
+
+    //fmt.Printf("\n\t parseoctet: %b - %d - %d ", extensed, lb, ub)
 	// initailization
 	//octetString := OctetString("")
 	octetString := OctetString{[]byte{}, ""}
@@ -749,10 +750,17 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 		return fmt.Errorf("sequence truncated")
 	}
 	if v.Kind() == reflect.Ptr {
-		ptr := reflect.New(fieldType.Elem())
-		v.Set(ptr)
-		return ParseField(v.Elem(), pd, params)
-	}
+		if _, ok := v.Interface().(AperDecoder); ok {
+            decoderType := reflect.New(v.Type().Elem())
+            v.Set(decoderType)
+			adInterface := v.Interface().(AperDecoder)
+			err := adInterface.AperDecode(pd, params )
+			return err
+        } 
+        ptr := reflect.New(fieldType.Elem())
+        v.Set(ptr)
+        return ParseField(v.Elem(), pd, params)
+    }
 	sizeExtensible := false
 	valueExtensible := false
 	if params.sizeExtensible {
@@ -902,7 +910,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 						err := adInterface.AperDecode(pd, structParams[present])
 						return err
 					} else {
-						/*
+                        /*
 						   fmt.Println("\n\t+++++struct+++++\n")
 						   spew.Dump(val.Interface())
 						   fmt.Println("\t++field++")
@@ -910,10 +918,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 						   fmt.Println("\t++sp++")
 						   spew.Dump(structParams[present])
 						   fmt.Println("\n\t++++pd+++\n")
-						   spew.Dump(pd)
-						   fmt.Println("\n\t++++++++++\n")
-						*/
-
+                           */
 						return ParseField(val.Field(present), pd, structParams[present])
 					}
 
@@ -965,7 +970,8 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 				}
 				continue
 			} else {
-				/*
+                /*
+				   spew.Dump(val.Field(i).Interface())
 				   fmt.Println("\n\t-----struct-----\n")
 				   spew.Dump(val.Interface())
 				   fmt.Println("\t--field--")
@@ -973,9 +979,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 				   fmt.Println("\t--sp--")
 				   spew.Dump(structParams[i])
 				   fmt.Println("\n\t----pd---\n")
-				   spew.Dump(pd)
-				   fmt.Println("\n\t----------\n")
-				*/
+                */
 				if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
 					return err
 				}
