@@ -1078,6 +1078,5 @@ func UnmarshalWithParams(b []byte, value interface{}, params string) error {
 	v := reflect.ValueOf(value).Elem()
 	pd := &PerBitData{b, 0, 0}
 	ret := ParseField(v, pd, parseFieldParameters(params))
-
 	return (ret)
 }
