@@ -1,7 +1,7 @@
 package aper
 
 import (
-	//"github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"runtime"
 )
+
+var spewDebug bool = true 
 
 type PerBitData struct {
 	bytes      []byte
@@ -292,11 +294,6 @@ func (pd *PerBitData) notExported() int {
 
 func (pd *PerBitData) ParseBitString(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (BitString, error) {
 
-	/*
-	   fmt.Printf("\n\tcalled parseBitString %v - %v - %v",extensed, *lowerBoundPtr, *upperBoundPtr)
-	   spew.Dump(pd)
-	   fmt.Println()
-	*/
 	var lb, ub, sizeRange int64 = 0, -1, -1
 	if !extensed {
 		if lowerBoundPtr != nil {
@@ -739,12 +736,27 @@ func (pd *PerBitData) parseOpenType(v reflect.Value, params FieldParameters) err
 	return err
 }
 
+
+func spewAll(s reflect.Value, f reflect.Value,  pd *PerBitData,param FieldParameters, hdr string){
+    fmt.Printf("\n\n\t%s\n",hdr)
+    if s!= reflect.ValueOf(nil){
+        fmt.Println("\n\n\n\t-----struct-----\n")
+        spew.Dump(s)
+    }
+    fmt.Println("\t--field--")
+    spew.Dump(f)
+    fmt.Println("\t--sp--")
+    spew.Dump(param)
+    fmt.Println("\n\t----pd---\n")
+    spew.Dump(pd)
+}
+
+
 // parseField is the main parsing function. Given a byte slice and an offset
 // into the array, it will try to parse a suitable ASN.1 value out and store it
 // in the given Value. TODO : ObjectIdenfier, handle extension Field
 func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	fieldType := v.Type()
-	//spew.Dump(v.Type().Name())
 	// If we have run out of data return error.
 	if pd.byteOffset == uint64(len(pd.bytes)) {
 		return fmt.Errorf("sequence truncated")
@@ -757,8 +769,12 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 			err := adInterface.AperDecode(pd, params )
 			return err
         } 
+        
         ptr := reflect.New(fieldType.Elem())
         v.Set(ptr)
+        if(spewDebug){
+            spewAll(reflect.ValueOf(nil), v.Elem(), pd, params, " # # # # # # # # # #")
+        }
         return ParseField(v.Elem(), pd, params)
     }
 	sizeExtensible := false
@@ -783,9 +799,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	// We deal with the structures defined in this package first.
 	switch fieldType {
 	case BitStringType:
-		//fmt.Printf("--pbs--%v\n",sizeExtensible)
-		//spew.Dump(pd)
-		//fmt.Println("----")
+
 		bitString, err1 := pd.ParseBitString(sizeExtensible, params.sizeLowerBound, params.sizeUpperBound)
 
 		if err1 != nil {
@@ -796,11 +810,6 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	case ObjectIdentifierType:
 		return fmt.Errorf("Unsupport ObjectIdenfier type")
 	case OctetStringType:
-		/*
-		        if params.sizeLowerBound != nil && params.sizeUpperBound != nil {
-		            fmt.Printf("\nparseoctet:%v - %v - %v",sizeExtensible, *params.sizeLowerBound, *params.sizeUpperBound)
-				}
-		*/
 		if octetString, err := pd.ParseOctetString(sizeExtensible, params.sizeLowerBound, params.sizeUpperBound); err != nil {
 			return err
 		} else {
@@ -910,23 +919,17 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 						err := adInterface.AperDecode(pd, structParams[present])
 						return err
 					} else {
-                        /*
-						   fmt.Println("\n\t+++++struct+++++\n")
-						   spew.Dump(val.Interface())
-						   fmt.Println("\t++field++")
-						   spew.Dump(val.Field(present).Interface())
-						   fmt.Println("\t++sp++")
-						   spew.Dump(structParams[present])
-						   fmt.Println("\n\t++++pd+++\n")
-                           */
-						return ParseField(val.Field(present), pd, structParams[present])
+
+                        if(spewDebug){
+                            spewAll(val, val.Field(present), pd, structParams[present], " + + + + + + + + +")
+                        }
+					    return ParseField(val.Field(present), pd, structParams[present])
 					}
 
 				}
 			}
 		}
 
-		//spew.Dump(val.Interface())
 		for i := 0; i < structType.NumField(); i++ {
 			//fmt.Printf("\tField:%d/%d",i,structType.NumField())
 			if structParams[i].optional && optionalCount > 0 {
@@ -970,17 +973,11 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 				}
 				continue
 			} else {
-                /*
-				   spew.Dump(val.Field(i).Interface())
-				   fmt.Println("\n\t-----struct-----\n")
-				   spew.Dump(val.Interface())
-				   fmt.Println("\t--field--")
-				   spew.Dump(val.Field(i).Interface())
-				   fmt.Println("\t--sp--")
-				   spew.Dump(structParams[i])
-				   fmt.Println("\n\t----pd---\n")
-                */
-				if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
+
+                if(spewDebug){
+                    spewAll(val, val.Field(i), pd, structParams[i], " - - - - - - - - -")
+                }
+			if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
 					return err
 				}
 			}
