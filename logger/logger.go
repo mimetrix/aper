@@ -2,7 +2,6 @@ package logger
 
 import (
 	"time"
-
 	formatter "github.com/antonfisher/nested-logrus-formatter"
 	"github.com/sirupsen/logrus"
 )
