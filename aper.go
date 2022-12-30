@@ -13,7 +13,7 @@ import (
 	"runtime"
 )
 
-var spewDebug bool = false
+var spewDebug bool = false 
 
     
 type PerBitData struct {
@@ -576,7 +576,7 @@ func (pd *PerBitData) ParseInteger(extensed bool, lowerBoundPtr *int64, upperBou
 	}
 }
 
-func (pd *PerBitData) parseEnumerated(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (value uint64,
+func (pd *PerBitData) ParseEnumerated(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (value uint64,
 	err error,
 ) {
 	if lowerBoundPtr == nil || upperBoundPtr == nil {
@@ -790,6 +790,8 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 
 	sizeExtensible := false
 	valueExtensible := false
+
+    //Consume a bit from 
 	if params.sizeExtensible {
 		if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
 			return err1
@@ -828,7 +830,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 			return nil
 		}
 	case EnumeratedType:
-		if parsedEnum, err := pd.parseEnumerated(valueExtensible, params.valueLowerBound,
+		if parsedEnum, err := pd.ParseEnumerated(valueExtensible, params.valueLowerBound,
 			params.valueUpperBound); err != nil {
 			return err
 		} else {
@@ -1086,6 +1088,7 @@ func make_human_readable(value interface{}) error {
 // top-level element. The form of the params is the same as the field tags.
 func UnmarshalWithParams(b []byte, value interface{}, params string) error {
     
+    //logger.SetLogLevel(logrus.DebugLevel)
     logger.SetLogLevel(logrus.ErrorLevel)
 
 	v := reflect.ValueOf(value).Elem()
