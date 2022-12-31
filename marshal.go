@@ -691,7 +691,7 @@ func (pd *perRawBitData) makeField(v reflect.Value, params FieldParameters) erro
 			if structType.Field(i).PkgPath != "" {
 				return fmt.Errorf("struct contains unexported fields : " + structType.Field(i).PkgPath)
 			}
-			tempParams := parseFieldParameters(structType.Field(i).Tag.Get("aper"))
+			tempParams := ParseFieldParameters(structType.Field(i).Tag.Get("aper"))
 			if sequenceType {
 				// for optional flag
 				if tempParams.optional {
@@ -802,7 +802,7 @@ func Marshal(val interface{}) ([]byte, error) {
 // top-level element. The form of the params is the same as the field tags.
 func MarshalWithParams(val interface{}, params string) ([]byte, error) {
 	pd := &perRawBitData{[]byte(""), 0}
-	err := pd.makeField(reflect.ValueOf(val), parseFieldParameters(params))
+	err := pd.makeField(reflect.ValueOf(val), ParseFieldParameters(params))
 	if err != nil {
 		return nil, err
 	} else if len(pd.bytes) == 0 {

@@ -150,6 +150,7 @@ func (pd *PerBitData) GetBitsValue(numBits uint) (value uint64, err error) {
 	return
 }
 
+
 func (pd *PerBitData) parseAlignBits() error {
 	if (pd.BitsOffset & 0x7) > 0 {
 		alignBits := 8 - ((pd.BitsOffset) & 0x7)
@@ -791,7 +792,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 	sizeExtensible := false
 	valueExtensible := false
 
-    //Consume a bit from 
+    //Consume a bit to see if this struct has been extended
 	if params.sizeExtensible {
 		if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
 			return err1
@@ -869,7 +870,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 			if structType.Field(i).PkgPath != "" {
 				return fmt.Errorf("struct contains unexported fields : " + structType.Field(i).PkgPath)
 			}
-			tempParams := parseFieldParameters(structType.Field(i).Tag.Get("aper"))
+			tempParams := ParseFieldParameters(structType.Field(i).Tag.Get("aper"))
 			// for optional flag
 			if tempParams.optional {
 				optionalCount++
@@ -1093,6 +1094,6 @@ func UnmarshalWithParams(b []byte, value interface{}, params string) error {
 
 	v := reflect.ValueOf(value).Elem()
 	pd := &PerBitData{b, 0, 0}
-	ret := ParseField(v, pd, parseFieldParameters(params))
+	ret := ParseField(v, pd, ParseFieldParameters(params))
 	return (ret)
 }
