@@ -9,7 +9,7 @@ import (
 // BitString is for an ASN.1 BIT STRING type, BitLength means the effective bits.
 type BitString struct {
 	Bytes      []byte // bits packed into bytes.
-	ByteString string
+	ByteString string `json:"-"`
 	BitLength  uint64 // length in bits.
 }
 
@@ -19,7 +19,7 @@ type BitString struct {
 // type OctetString []byte
 type OctetString struct {
 	Bytes       []byte
-	OctetString string
+	OctetString string `json:"-"`
 }
 
 // OBJECT IDENTIFIER

@@ -13,7 +13,7 @@ import (
 	"runtime"
 )
 
-var spewDebug bool = false 
+var spewDebug bool = false
 
     
 type PerBitData struct {
