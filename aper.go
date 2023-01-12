@@ -1,3 +1,6 @@
+/*
+aper is a package that decodes the aper 
+*/
 package aper
 
 import (
@@ -13,7 +16,7 @@ import (
 	"runtime"
 )
 
-var spewDebug bool = false
+var spewDebug bool = false 
 
     
 type PerBitData struct {
@@ -1070,9 +1073,6 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 //
 // Other ASN.1 types are not supported; if it encounters them,
 // Unmarshal returns a parse error.
-func Unmarshal(b []byte, value interface{}) error {
-	return UnmarshalWithParams(b, value, "")
-}
 
 func make_human_readable(value interface{}) error {
 
