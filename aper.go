@@ -30,6 +30,16 @@ type AperDecoder interface {
 	AperDecode(pd *PerBitData, params FieldParameters) error
 }
 
+func SetDebug(){
+    spewDebug = true
+    logger.SetLogLevel(logrus.DebugLevel)
+}
+
+func UnsetDebug(){
+    spewDebug = false 
+    logger.SetLogLevel(logrus.ErrorLevel)
+}
+
 func perTrace(level int, s string) {
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
@@ -244,8 +254,12 @@ func (pd *PerBitData) parseNormallySmallNonNegativeWholeNumber() (value uint64, 
 
 func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, err error) {
 	*repeat = false
+    perTrace(1,"PARSING LEN")
 	if sizeRange <= 65536 && sizeRange > 0 {
-		return pd.parseConstraintValue(sizeRange)
+        parsedLen, err := pd.parseConstraintValue(sizeRange)
+
+        perTrace(1,fmt.Sprintf("Parsed Length: %d", parsedLen))
+        return parsedLen, err
 	}
 
 	if err = pd.parseAlignBits(); err != nil {
@@ -257,6 +271,7 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	}
 	if (firstByte & 128) == 0 { // #10.9.3.6
 		value = firstByte & 0x7F
+        perTrace(1,fmt.Sprintf("Parsed Length: %d", value))
 		return
 	} else if (firstByte & 64) == 0 { // #10.9.3.7
 		var secondByte uint64
@@ -264,6 +279,7 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 			return
 		}
 		value = ((firstByte & 63) << 8) | secondByte
+        perTrace(1,fmt.Sprintf("Parsed Length: %d", value))
 		return
 	}
 	firstByte &= 63
@@ -273,6 +289,7 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	}
 	*repeat = true
 	value = 16384 * firstByte
+    perTrace(1,fmt.Sprintf("Parsed Length: %d", value))
 	return value, err
 }
 
@@ -617,7 +634,8 @@ func (pd *PerBitData) parseSequenceOf(sizeExtensed bool, params FieldParameters,
 	var lb int64 = 0
 	var sizeRange int64
 
-    logger.AperLog.Infof("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset)
+    //logger.AperLog.Debug("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset)
+    perTrace(1,fmt.Sprintf("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset))
 
 	if params.sizeLowerBound != nil && *params.sizeLowerBound < 65536 {
 		lb = *params.sizeLowerBound
@@ -1089,8 +1107,6 @@ func make_human_readable(value interface{}) error {
 // top-level element. The form of the params is the same as the field tags.
 func UnmarshalWithParams(b []byte, value interface{}, params string) error {
     
-    //logger.SetLogLevel(logrus.DebugLevel)
-    logger.SetLogLevel(logrus.ErrorLevel)
 
 	v := reflect.ValueOf(value).Elem()
 	pd := &PerBitData{b, 0, 0}
