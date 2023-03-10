@@ -1,43 +1,44 @@
 /*
-aper is a package that decodes the aper 
+aper is a package that decodes the aper
 */
 package aper
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/davecgh/go-spew/spew"
+
 	//"encoding/hex"
-	"github.com/free5gc/aper/logger"
-	"github.com/sirupsen/logrus"
 	"path"
 	"reflect"
 	"runtime"
+
+	"github.com/free5gc/aper/logger"
+	"github.com/sirupsen/logrus"
 )
 
-var spewDebug bool = false 
+var spewDebug bool = false
 
-    
 type PerBitData struct {
 	Bytes      []byte
 	ByteOffset uint64
 	BitsOffset uint
 }
 
-
 type AperDecoder interface {
 	AperDecode(pd *PerBitData, params FieldParameters) error
 }
 
-func SetDebug(){
-    spewDebug = true
-    logger.SetLogLevel(logrus.DebugLevel)
+func SetDebug() {
+	spewDebug = true
+	logger.SetLogLevel(logrus.DebugLevel)
 }
 
-func UnsetDebug(){
-    spewDebug = false 
-    logger.SetLogLevel(logrus.ErrorLevel)
+func UnsetDebug() {
+	spewDebug = false
+	logger.SetLogLevel(logrus.ErrorLevel)
 }
 
 func perTrace(level int, s string) {
@@ -57,7 +58,6 @@ func perBitLog(numBits uint64, byteOffset uint64, bitsOffset uint, value interfa
 	return fmt.Sprintf("  [PER got %2d bits, byteOffset(after): %d, bitsOffset(after): %d, value: 0x%0x]",
 		numBits, byteOffset, bitsOffset, reflect.ValueOf(value).Bytes())
 }
-
 
 // GetBitString is to get BitString with desire size from source byte array with bit offset
 func GetBitString(srcBytes []byte, bitsOffset uint, numBits uint) (dstBytes []byte, err error) {
@@ -163,7 +163,6 @@ func (pd *PerBitData) GetBitsValue(numBits uint) (value uint64, err error) {
 	return
 }
 
-
 func (pd *PerBitData) parseAlignBits() error {
 	if (pd.BitsOffset & 0x7) > 0 {
 		alignBits := 8 - ((pd.BitsOffset) & 0x7)
@@ -254,12 +253,12 @@ func (pd *PerBitData) parseNormallySmallNonNegativeWholeNumber() (value uint64, 
 
 func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, err error) {
 	*repeat = false
-    perTrace(1,"PARSING LEN")
+	perTrace(1, "PARSING LEN")
 	if sizeRange <= 65536 && sizeRange > 0 {
-        parsedLen, err := pd.parseConstraintValue(sizeRange)
+		parsedLen, err := pd.parseConstraintValue(sizeRange)
 
-        perTrace(1,fmt.Sprintf("Parsed Length: %d", parsedLen))
-        return parsedLen, err
+		perTrace(1, fmt.Sprintf("Parsed Length: %d", parsedLen))
+		return parsedLen, err
 	}
 
 	if err = pd.parseAlignBits(); err != nil {
@@ -271,7 +270,7 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	}
 	if (firstByte & 128) == 0 { // #10.9.3.6
 		value = firstByte & 0x7F
-        perTrace(1,fmt.Sprintf("Parsed Length: %d", value))
+		perTrace(1, fmt.Sprintf("Parsed Length: %d", value))
 		return
 	} else if (firstByte & 64) == 0 { // #10.9.3.7
 		var secondByte uint64
@@ -279,7 +278,7 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 			return
 		}
 		value = ((firstByte & 63) << 8) | secondByte
-        perTrace(1,fmt.Sprintf("Parsed Length: %d", value))
+		perTrace(1, fmt.Sprintf("Parsed Length: %d", value))
 		return
 	}
 	firstByte &= 63
@@ -289,7 +288,7 @@ func (pd *PerBitData) parseLength(sizeRange int64, repeat *bool) (value uint64, 
 	}
 	*repeat = true
 	value = 16384 * firstByte
-    perTrace(1,fmt.Sprintf("Parsed Length: %d", value))
+	perTrace(1, fmt.Sprintf("Parsed Length: %d", value))
 	return value, err
 }
 
@@ -429,7 +428,7 @@ func (pd *PerBitData) ParseOctetString(extensed bool, lowerBoundPtr *int64, uppe
 		sizeRange = -1
 	}
 
-    //fmt.Printf("\n\t parseoctet: %b - %d - %d ", extensed, lb, ub)
+	//fmt.Printf("\n\t parseoctet: %b - %d - %d ", extensed, lb, ub)
 	// initailization
 	//octetString := OctetString("")
 	octetString := OctetString{[]byte{}, ""}
@@ -512,6 +511,8 @@ func (pd *PerBitData) parseBool() (value bool, err error) {
 }
 
 func (pd *PerBitData) ParseInteger(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (int64, error) {
+
+	perTrace(3, "Decoding Int Value")
 	var lb, ub, valueRange int64 = 0, -1, 0
 	if !extensed {
 		if lowerBoundPtr == nil {
@@ -600,6 +601,8 @@ func (pd *PerBitData) ParseInteger(extensed bool, lowerBoundPtr *int64, upperBou
 func (pd *PerBitData) ParseEnumerated(extensed bool, lowerBoundPtr *int64, upperBoundPtr *int64) (value uint64,
 	err error,
 ) {
+
+	perTrace(3, "Decoding Enum Value")
 	if lowerBoundPtr == nil || upperBoundPtr == nil {
 		err = fmt.Errorf("ENUMERATED value constraint is error")
 		return
@@ -634,8 +637,9 @@ func (pd *PerBitData) parseSequenceOf(sizeExtensed bool, params FieldParameters,
 	var lb int64 = 0
 	var sizeRange int64
 
-    //logger.AperLog.Debug("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset)
-    perTrace(1,fmt.Sprintf("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset))
+	perTrace(3, "Decoding Sequence Value")
+	//logger.AperLog.Debug("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset)
+	perTrace(1, fmt.Sprintf("byte_Off:%d, bit_Off:%d", pd.ByteOffset, pd.BitsOffset))
 
 	if params.sizeLowerBound != nil && *params.sizeLowerBound < 65536 {
 		lb = *params.sizeLowerBound
@@ -765,55 +769,53 @@ func (pd *PerBitData) parseOpenType(v reflect.Value, params FieldParameters) err
 	return err
 }
 
-
-func spewAll(s reflect.Value, f reflect.Value,  pd *PerBitData,param FieldParameters, hdr string){
-    fmt.Printf("\n\n\t%s\n",hdr)
-    if s!= reflect.ValueOf(nil){
-        fmt.Println("\n\n\n\t-----struct-----\n")
-        spew.Dump(s.Interface())
-    }
-    fmt.Println("\t--field--")
-    spew.Dump(f.Interface())
-    fmt.Println("\t--sp--")
-    spew.Dump(param)
-    fmt.Println("\t----pd----")
-    spew.Dump(pd)
+func spewAll(s reflect.Value, f reflect.Value, pd *PerBitData, param FieldParameters, hdr string) {
+	fmt.Printf("\n\n\t%s\n", hdr)
+	if s != reflect.ValueOf(nil) {
+		fmt.Println("\n\n\n\t-----struct-----\n")
+		spew.Dump(s.Interface())
+	}
+	fmt.Println("\t--field--")
+	spew.Dump(f.Interface())
+	fmt.Println("\t--sp--")
+	spew.Dump(param)
+	fmt.Println("\t----pd----")
+	spew.Dump(pd)
 }
-
 
 // parseField is the main parsing function. Given a byte slice and an offset
 // into the array, it will try to parse a suitable ASN.1 value out and store it
 // in the given Value. TODO : ObjectIdenfier, handle extension Field
 func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
-   
+
 	fieldType := v.Type()
 	// If we have run out of data return error.
 	if pd.ByteOffset == uint64(len(pd.Bytes)) {
 		return fmt.Errorf("sequence truncated")
 	}
 
-    //start recursive processing for pointer type
+	//start recursive processing for pointer type
 	if v.Kind() == reflect.Ptr {
 		if _, ok := v.Interface().(AperDecoder); ok {
-            decoderType := reflect.New(v.Type().Elem())
-            v.Set(decoderType)
+			decoderType := reflect.New(v.Type().Elem())
+			v.Set(decoderType)
 			adInterface := v.Interface().(AperDecoder)
-			err := adInterface.AperDecode(pd, params )
+			err := adInterface.AperDecode(pd, params)
 			return err
-        } 
-        
-        ptr := reflect.New(fieldType.Elem())
-        v.Set(ptr)
-        if(spewDebug){
-            spewAll(reflect.ValueOf(nil), v.Elem(), pd, params, " # # # # # # # # # #")
-        }
-        return ParseField(v.Elem(), pd, params)
-    }
+		}
+
+		ptr := reflect.New(fieldType.Elem())
+		v.Set(ptr)
+		if spewDebug {
+			spewAll(reflect.ValueOf(nil), v.Elem(), pd, params, " # # # # # # # # # #")
+		}
+		return ParseField(v.Elem(), pd, params)
+	}
 
 	sizeExtensible := false
 	valueExtensible := false
 
-    //Consume a bit to see if this struct has been extended
+	//Consume a bit to see if this struct has been extended
 	if params.sizeExtensible {
 		if bitsValue, err1 := pd.GetBitsValue(1); err1 != nil {
 			return err1
@@ -955,10 +957,10 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 						return err
 					} else {
 
-                        if(spewDebug){
-                            spewAll(val, val.Field(present), pd, structParams[present], " + + + + + + + + +")
-                        }
-					    return ParseField(val.Field(present), pd, structParams[present])
+						if spewDebug {
+							spewAll(val, val.Field(present), pd, structParams[present], " + + + + + + + + +")
+						}
+						return ParseField(val.Field(present), pd, structParams[present])
 					}
 
 				}
@@ -966,7 +968,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 		}
 
 		for i := 0; i < structType.NumField(); i++ {
-            
+
 			//fmt.Printf("\n\tField:%d/%d",i,structType.NumField())
 
 			if structParams[i].optional && optionalCount > 0 {
@@ -974,7 +976,7 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 				if optionalPresents&(1<<optionalCount) == 0 {
 					perTrace(3, fmt.Sprintf("Field \"%s\" in %s is OPTIONAL and not present", structType.Field(i).Name, structType))
 					continue
-                    fmt.Println("optional")
+					fmt.Println("optional")
 				} else {
 					perTrace(3, fmt.Sprintf("Field \"%s\" in %s is OPTIONAL and present", structType.Field(i).Name, structType))
 				}
@@ -1012,10 +1014,10 @@ func ParseField(v reflect.Value, pd *PerBitData, params FieldParameters) error {
 				continue
 			} else {
 
-                if(spewDebug){
-                    spewAll(val, val.Field(i), pd, structParams[i], " - - - - - - - - -")
-                }
-			if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
+				if spewDebug {
+					spewAll(val, val.Field(i), pd, structParams[i], " - - - - - - - - -")
+				}
+				if err := ParseField(val.Field(i), pd, structParams[i]); err != nil {
 					return err
 				}
 			}
@@ -1106,7 +1108,6 @@ func make_human_readable(value interface{}) error {
 // UnmarshalWithParams allows field parameters to be specified for the
 // top-level element. The form of the params is the same as the field tags.
 func UnmarshalWithParams(b []byte, value interface{}, params string) error {
-    
 
 	v := reflect.ValueOf(value).Elem()
 	pd := &PerBitData{b, 0, 0}
